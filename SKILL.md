@@ -35,8 +35,8 @@ Three layers, each with a clear owner:
 ```
 project/
 ├── raw/                            # Source documents (human-curated, immutable)
-│   ├── research_report.md          # Synthesis report (start here if present)
-│   ├── 2601.05388v2.pdf            # Supporting paper
+│   ├── overview-article.md         # Synthesis report (start here if present)
+│   ├── smith-2024.pdf              # Supporting paper
 │   └── ...
 ├── wiki/                           # Knowledge base (LLM-maintained)
 │   ├── index.md                    # Content catalog — the map of everything
@@ -61,11 +61,11 @@ Scan `raw/` recursively. Classify each file:
 | image | .png, .jpg, .jpeg, .webp, .svg | Describe visually; extract data from charts/diagrams |
 | data | .csv, .json, .xlsx | Summarize structure and key statistics |
 
-Skip dot-files, `wiki/`, and any `graphify-out/` or build directories.
+Skip dot-files, `wiki/`, and any build or output directories.
 
 **Check for prior work**: Read `wiki/log.md` if it exists. Compare the list of already-ingested source files against what's in `raw/`. Only process new or modified sources (compare by filename — if a file has been ingested before, skip it unless the user explicitly asks to re-ingest).
 
-**Priority order**: If `raw/` contains a file named `research_report.md` (or similar synthesis document), ingest it first. Synthesis reports reference other sources and give you the best map of the domain — they help you identify entities and concepts to watch for in subsequent sources.
+**Priority order**: If `raw/` contains a synthesis or overview document (e.g., a review article, a summary report), ingest it first. Synthesis documents reference other sources and give you the best map of the domain — they help you identify entities and concepts to watch for in subsequent sources.
 
 ## STEP 2: Read and understand each source
 
@@ -117,7 +117,7 @@ the source but needs to understand what it contributes.
 - Questions this source raises for further investigation
 ```
 
-**Slug convention**: lowercase, hyphen-separated, descriptive. `research-report.md` becomes `research-report`. A paper by Airas & Zhang becomes `airas-zhang-2026`. Keep slugs stable — they become the permanent identifier.
+**Slug convention**: lowercase, hyphen-separated, descriptive. `my-review-article.md` becomes `my-review-article`. A paper by Smith & Jones (2024) becomes `smith-jones-2024`. Keep slugs stable — they become the permanent identifier.
 
 ## STEP 4: Create or update entity pages
 
@@ -208,19 +208,19 @@ The goal: a reader browsing in Obsidian should be able to follow links from any 
 > N sources ingested, N entity pages, N concept pages, N analyses
 
 ## Sources
-- [[sources/research-report]] — Overview of evolutionary intelligence in protein solvation
-- [[sources/airas-zhang-2026]] — Original Airas & Zhang paper on knowledge distillation for ISMs
+- [[sources/review-article]] — Overview of the field and key developments
+- [[sources/smith-jones-2024]] — Original study on the core methodology
 
 ## Entities
-- [[entities/esm3]] — Multimodal protein language model (Meta)
-- [[entities/schake-gnn]] — Hybrid GNN architecture combining SchNet + SAKE
+- [[entities/some-tool]] — Description of what it is
+- [[entities/some-organization]] — Description of its role
 
 ## Concepts
-- [[concepts/implicit-solvent-models]] — Computational models replacing explicit water molecules
-- [[concepts/knowledge-distillation]] — Training compact models from larger teacher models
+- [[concepts/some-method]] — Brief description of the method
+- [[concepts/some-theory]] — Brief description of the theory
 
 ## Analyses
-- [[analyses/ism-paradigm-comparison]] — Comparison of solvation modeling approaches
+- [[analyses/method-comparison]] — Comparison of different approaches
 ```
 
 Each entry: one link + one-line description. Keep it scannable — this is how you (and the human) navigate the wiki.
@@ -241,12 +241,12 @@ Use a consistent prefix format so the log is grep-able: `## [YYYY-MM-DD] verb | 
 
 Also log queries and lint passes:
 ```markdown
-## [YYYY-MM-DD] query | "What is the Schake architecture?"
-Answer filed to: analyses/schake-architecture-explained
+## [YYYY-MM-DD] query | "How does method X compare to method Y?"
+Answer filed to: analyses/x-vs-y-comparison
 
 ## [YYYY-MM-DD] lint | Health check
 Found: 2 orphan pages, 1 dead link, 3 gaps
-Fixed: dead link in entities/esm3, created stub for concepts/born-energy
+Fixed: dead link in entities/some-tool, created stub for concepts/some-theory
 ```
 
 ## STEP 9: Write or update overview.md
@@ -315,9 +315,9 @@ Present findings as a checklist. Offer to fix the mechanical issues (dead links,
 
 ## Conventions
 
-**Wikilinks**: Use `[[relative-path]]` from wiki root. Example: `[[entities/esm3]]`, `[[concepts/knowledge-distillation]]`, `[[sources/research-report]]`. Obsidian resolves these as links between notes.
+**Wikilinks**: Use `[[relative-path]]` from wiki root. Example: `[[entities/some-tool]]`, `[[concepts/some-method]]`, `[[sources/review-article]]`. Obsidian resolves these as links between notes.
 
-**Filenames**: Lowercase, hyphen-separated. `implicit-solvent-models.md`, `airas-zhang-2026.md`. Keep stable — renaming breaks links.
+**Filenames**: Lowercase, hyphen-separated. `some-method.md`, `smith-jones-2024.md`. Keep stable — renaming breaks links.
 
 **Frontmatter**: Every wiki page gets YAML frontmatter with at least `title` and `type`. This enables Obsidian Dataview queries and helps the LLM classify pages quickly.
 
@@ -340,8 +340,8 @@ For 1-4 sources, process sequentially — simpler and the coordination overhead 
 
 ## Tips
 
-- **Start with the synthesis document.** If `raw/` contains `research_report.md` or a similar overview, ingest it first. It maps the domain and tells you what entities and concepts to expect in supporting documents.
-- **Entity vs. concept is fuzzy.** ESM3 is both a specific model (entity) and an instance of protein language models (concept). Use your judgment — if it has a proper name, it's probably an entity. If it's a general idea, it's a concept. Some things warrant both a page in `entities/` and a mention on a broader concept page.
+- **Start with the synthesis document.** If `raw/` contains a review article or overview report, ingest it first. It maps the domain and tells you what entities and concepts to expect in supporting documents.
+- **Entity vs. concept is fuzzy.** A specific tool is an entity, but it's also an instance of a broader concept. Use your judgment — if it has a proper name, it's probably an entity. If it's a general idea, it's a concept. Some things warrant both a page in `entities/` and a mention on a broader concept page.
 - **Don't over-extract.** Not every noun needs an entity page. Create pages for things that are (a) mentioned in multiple sources, (b) central to the domain, or (c) have enough substance for a useful page. Minor mentions can live as bullets on other pages.
 - **Filed answers compound.** When a query answer is filed as an analysis page, it becomes part of the wiki's knowledge. Future queries and ingests can build on it. Encourage the human to file good answers.
 - **The wiki is the interface.** The human browses it in Obsidian (or any markdown viewer). Optimize for browsability: clear headings, scannable bullets, meaningful links. Graph view in Obsidian will show the structure — aim for a connected graph with no large orphan clusters.
