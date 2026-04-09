@@ -1,4 +1,24 @@
-# LLM Wiki
+# LLM Wiki — Claude Code Skill
+
+A Claude Code skill for building persistent, interlinked knowledge base wikis from raw source documents.
+
+This skill is based on Andrej Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) concept — a pattern for building personal knowledge bases using LLMs. The original idea describes how an LLM can incrementally build and maintain a structured, interlinked wiki from raw sources, handling all the summarizing, cross-referencing, and bookkeeping that makes a knowledge base useful over time.
+
+This repo turns that idea into a concrete [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) (`SKILL.md`) that you can install and use immediately. The skill implements the full workflow: source ingestion, wiki construction with entity/concept pages, `[[wikilinks]]`, YAML frontmatter, query answering with filing, and lint/health-check operations.
+
+## Usage
+
+Copy `SKILL.md` into your Claude Code skills directory, or point Claude Code at this repo. Then use `/wiki` commands to build and maintain your knowledge base.
+
+---
+
+*The rest of this README is Karpathy's original concept document, preserved below for reference.*
+
+---
+
+## The Original Concept
+
+> *The following is from [Andrej Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).*
 
 A pattern for building personal knowledge bases using LLMs.
 
