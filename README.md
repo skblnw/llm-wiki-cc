@@ -24,7 +24,7 @@ curl -o .claude/skills/llm-wiki/SKILL.md \
   https://raw.githubusercontent.com/skblnw/llm-wiki-cc/main/SKILL.md
 ```
 
-**Option 3 — clone and symlink**:
+**Option 3 — clone directly into skills directory**:
 ```bash
 git clone https://github.com/skblnw/llm-wiki-cc ~/.claude/skills/llm-wiki
 ```
@@ -35,22 +35,28 @@ Claude Code automatically discovers `SKILL.md` files in `~/.claude/skills/` (glo
 
 ## Quick Start
 
+**In your terminal:**
 ```bash
-# 1. Create a raw/ directory and drop in your documents
+# Create a raw/ directory and drop in your documents
 mkdir raw/
 cp my-article.pdf my-notes.md raw/
 
-# 2. Open Claude Code in your project directory
+# Open Claude Code in your project directory
 claude
+```
 
-# 3. Ingest all sources and build the wiki
+**In the Claude Code chat:**
+```
+# Ingest all sources and build the wiki
 /wiki
 
-# 4. Ask questions
+# Ask questions
 /wiki query "What are the main arguments for X?"
+```
 
-# 5. Open in Obsidian to browse
-open obsidian://open?path=$(pwd)/wiki
+**Back in your terminal, to browse the result in Obsidian** (run from project root):
+```bash
+open "obsidian://open?path=$(pwd)/wiki"
 ```
 
 ---
