@@ -6,17 +6,154 @@ This skill is based on Andrej Karpathy's [LLM Wiki](https://gist.github.com/karp
 
 This repo turns that idea into a concrete [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) (`SKILL.md`) that you can install and use immediately. The skill implements the full workflow: source ingestion, wiki construction with entity/concept pages, `[[wikilinks]]`, YAML frontmatter, query answering with filing, and lint/health-check operations.
 
-## Usage
+---
 
-Copy `SKILL.md` into your Claude Code skills directory, or point Claude Code at this repo. Then use `/wiki` commands to build and maintain your knowledge base.
+## Installation
+
+**Option 1 — global install** (skill available in all projects):
+```bash
+mkdir -p ~/.claude/skills/llm-wiki
+curl -o ~/.claude/skills/llm-wiki/SKILL.md \
+  https://raw.githubusercontent.com/skblnw/llm-wiki-cc/main/SKILL.md
+```
+
+**Option 2 — per-project install** (skill lives with the project):
+```bash
+mkdir -p .claude/skills/llm-wiki
+curl -o .claude/skills/llm-wiki/SKILL.md \
+  https://raw.githubusercontent.com/skblnw/llm-wiki-cc/main/SKILL.md
+```
+
+**Option 3 — clone and symlink**:
+```bash
+git clone https://github.com/skblnw/llm-wiki-cc ~/.claude/skills/llm-wiki
+```
+
+Claude Code automatically discovers `SKILL.md` files in `~/.claude/skills/` (global) and `.claude/skills/` (project-local).
 
 ---
 
-*The rest of this README is Karpathy's original concept document, preserved below for reference.*
+## Quick Start
+
+```bash
+# 1. Create a raw/ directory and drop in your documents
+mkdir raw/
+cp my-article.pdf my-notes.md raw/
+
+# 2. Open Claude Code in your project directory
+claude
+
+# 3. Ingest all sources and build the wiki
+/wiki
+
+# 4. Ask questions
+/wiki query "What are the main arguments for X?"
+
+# 5. Open in Obsidian to browse
+open obsidian://open?path=$(pwd)/wiki
+```
 
 ---
 
-## The Original Concept
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `/wiki` | Ingest all unprocessed sources in `raw/` |
+| `/wiki ingest` | Same as above |
+| `/wiki ingest <file>` | Ingest a specific source file |
+| `/wiki query "<question>"` | Answer a question using the wiki |
+| `/wiki lint` | Health-check the wiki for gaps and issues |
+| `/wiki status` | Show wiki stats (pages, sources, last activity) |
+
+---
+
+## What You Get
+
+After running `/wiki`, a `wiki/` directory is created alongside your `raw/` sources:
+
+```
+wiki/
+├── index.md          ← master catalog with links to every page
+├── overview.md       ← high-level synthesis across all sources
+├── log.md            ← append-only record of every operation
+├── sources/          ← one summary page per source document
+│   └── my-article.md
+├── entities/         ← people, tools, models, organizations
+│   └── some-tool.md
+├── concepts/         ← ideas, methods, theories, phenomena
+│   └── some-method.md
+└── analyses/         ← filed answers to queries, comparisons
+    └── method-comparison.md
+```
+
+Every page has YAML frontmatter and uses `[[wikilinks]]` for cross-references:
+
+```markdown
+---
+title: "Some Method"
+type: concept
+related: ["other-concept"]
+first_seen: "sources/my-article"
+---
+
+# Some Method
+
+Description synthesizing all sources that mention this concept.
+
+## How It Works
+...
+
+## Sources
+- [[sources/my-article]] — introduces the concept
+```
+
+A typical ingest of 2–3 documents produces 20–30 wiki pages: source summaries, entity pages for key people/tools/models, concept pages for key ideas, and an updated index, overview, and log.
+
+---
+
+## Viewing the Wiki
+
+**Obsidian** (recommended) — the wiki is built for it:
+
+```bash
+open obsidian://open?path=$(pwd)/wiki
+```
+
+- Press **Cmd+G** for graph view — see the full knowledge structure as an interactive graph
+- Follow `[[wikilinks]]` to navigate between pages
+- Useful plugins: **Dataview** (query pages by frontmatter), **Marp** (generate slides from wiki content)
+
+**VS Code** — open the `wiki/` folder and use Markdown Preview
+
+**Any markdown viewer** — the files are plain `.md`, readable anywhere
+
+---
+
+## How It Works
+
+**Ingest** — drop files into `raw/`, run `/wiki`. Claude reads each source, writes a summary page, creates entity and concept pages, cross-references everything, updates the index and overview, and appends to the log. A single source typically touches 10–15 pages. Already-ingested sources are skipped (tracked via `log.md`).
+
+**Query** — ask `/wiki query "..."`. Claude reads the index to find relevant pages, synthesizes an answer with `[[wikilink]]` citations, and offers to file the answer as a new analysis page so it becomes part of the wiki.
+
+**Lint** — run `/wiki lint` to health-check the wiki: orphan pages, dead links, missing cross-references, content gaps, contradictions between sources. Claude reports findings as a checklist and offers to fix the mechanical issues.
+
+---
+
+## Tips
+
+- **Start with a synthesis document.** If you have a review article or overview report, put it in `raw/` first — it maps the domain and primes the wiki before you add primary sources.
+- **File good answers.** When a query produces something valuable, say "file this". It compounds into the wiki.
+- **The wiki is a git repo.** Run `git init` in your project folder and commit the `wiki/` directory. You get full version history of your knowledge base.
+- **Obsidian Web Clipper** — browser extension that converts web articles to markdown, great for quickly adding sources to `raw/`.
+
+---
+
+*The rest of this README is Karpathy's original concept document, which this skill is based on.*
+
+---
+
+## The Original Concept (Karpathy's LLM Wiki)
 
 > *The following is from [Andrej Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).*
 
