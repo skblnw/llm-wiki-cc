@@ -63,7 +63,7 @@ Scan `raw/` recursively. Classify each file:
 
 Skip dot-files, `wiki/`, and any build or output directories.
 
-**Check for prior work**: Read `wiki/log.md` if it exists. Compare the list of already-ingested source files against what's in `raw/`. Only process new or modified sources (compare by filename — if a file has been ingested before, skip it unless the user explicitly asks to re-ingest).
+**Check for prior work**: Read `wiki/log.md` if it exists. If it does not exist (or `wiki/` does not exist), this is the first run — process all files in `raw/`. If log.md does exist, compare the list of already-ingested source files against what's in `raw/`. Only skip files that have been ingested before (compare by filename); process everything else.
 
 **Priority order**: If `raw/` contains a synthesis or overview document (e.g., a review article, a summary report), ingest it first. Synthesis documents reference other sources and give you the best map of the domain — they help you identify entities and concepts to watch for in subsequent sources.
 
@@ -77,7 +77,7 @@ For each unprocessed source, read it thoroughly and extract:
 4. **Relationships** — how entities and concepts connect: "X uses Y", "A contradicts B", "C extends D".
 5. **Questions** — what this source leaves unanswered or what new questions it raises.
 
-For PDFs: read page ranges to extract the full text. If text extraction is garbled in places, flag those sections rather than guessing.
+For PDFs: use the Read tool with the `pages` parameter to extract the full text in chunks of up to 20 pages at a time (e.g., `pages: "1-20"`, then `"21-40"`, etc.). Keep reading until you reach the last page — do not stop early. If text extraction is garbled in a section, flag it rather than guessing.
 
 For images: describe what you see. If it's a chart, extract the key data points. If it's a diagram, describe the components and their relationships.
 
