@@ -63,7 +63,7 @@ Scan `raw/` recursively. Classify each file:
 
 Skip dot-files, `wiki/`, and any build or output directories.
 
-**Check for prior work**: Read `wiki/log.md` if it exists. If it does not exist (or `wiki/` does not exist), this is the first run — process all files in `raw/`. If log.md does exist, compare the list of already-ingested source files against what's in `raw/`. Only skip files that have been ingested before (compare by filename); process everything else.
+**Check for prior work**: Read `wiki/log.md` if it exists. If it does not exist (or `wiki/` does not exist), this is the first run — process all files in `raw/`. If log.md does exist, compare the list of already-ingested source files against what's in `raw/`. Only skip files that have been ingested before (compare by filename); process everything else. Note: log entries may contain `Renamed:` lines — when matching filenames, check both the original and the renamed filename in those entries so already-ingested PDFs are not re-processed after a rename.
 
 **Priority order**: If `raw/` contains a synthesis or overview document (e.g., a review article, a summary report), ingest it first. Synthesis documents reference other sources and give you the best map of the domain — they help you identify entities and concepts to watch for in subsequent sources.
 
@@ -81,6 +81,57 @@ For PDFs: use the Read tool with the `pages` parameter to extract the full text 
 
 For images: describe what you see. If it's a chart, extract the key data points. If it's a diagram, describe the components and their relationships.
 
+## STEP 2.5: Rename source PDFs
+
+After extracting metadata in Step 2, rename each PDF in `raw/` to a human-readable name. This only applies to `.pdf` files — other file types are left unchanged. Do this before writing any wiki pages so `source_file` references in Step 3 always point to the clean name.
+
+**Target format**: `FirstAuthor et al - YYYY - Title.pdf`
+
+**Author rules**:
+- Single author: use last name only. Example: `Zhang - 2024 - Deep Lead Optimization.pdf`
+- Two authors: use both last names separated by a comma. Example: `Smith, Jones - 2024 - Some Method.pdf`
+- Three or more authors: use first author's last name + "et al". Example: `Newell et al - 2013 - Combinatorial Tetramer Staining.pdf`
+- If no authors could be extracted, use `Unknown`.
+
+**Year rules**:
+- Use the 4-digit publication year. If unavailable, use `undated`.
+
+**Title rules**:
+- Use Title Case.
+- If the title contains a colon, keep the part before the colon first; only include what follows if it still fits within the length limit.
+- Truncate to ~60 characters, breaking at a word boundary (never mid-word). Do not add ellipsis.
+- Example: "Combinatorial tetramer staining and mass cytometry analysis facilitate T-cell epitope mapping..." → "Combinatorial Tetramer Staining and Mass Cytometry"
+
+**Sanitization rules** (applied in order):
+1. Replace non-ASCII characters with the closest ASCII equivalent where one exists (e.g., `ü` → `u`, `é` → `e`, `等` → removed). Remove characters with no reasonable equivalent.
+2. Remove characters invalid in filenames: `/ \ : * ? " < > |`
+3. Collapse multiple consecutive spaces into one.
+4. Strip leading and trailing spaces from each component (author, year, title).
+
+**Total filename length**: Cap the entire filename (excluding `.pdf`) at 120 characters. If the title portion pushes it over, shorten the title further at a word boundary.
+
+**Collision handling**: If the target filename already exists in `raw/` (e.g., two papers by the same first author in the same year), append ` (2)`, ` (3)`, etc. before `.pdf`.
+
+**Skip if already clean**: If the current filename already matches the `Author - YYYY - Title` pattern (i.e., it looks like it was already renamed), do not rename it again.
+
+**How to rename**: Use the Bash tool to run `mv "raw/<old>" "raw/<new>"` from the project root. If `mv` fails (e.g., permission error), log a warning and continue — do not abort the ingest.
+
+**Track renames**: Store both the original and new filename so Step 3 can use the new name in `source_file`, and Step 8 can log the rename.
+
+**Examples** using real-world messy filenames:
+
+| Original filename | Renamed to |
+|---|---|
+| `s42256-024-00971-y.pdf` | `Wohlwend et al - 2025 - Boltz-1 Biomolecular Interaction Prediction.pdf` |
+| `PIIS2589004225013057.pdf` | `Cimen Bozkus et al - 2025 - Neoantigen Specific T Cell Responses.pdf` |
+| `bbaf386.pdf` | `Ward et al - 2025 - Neoantigen Immunogenicity Prediction.pdf` |
+| `sciimmunol.abg5669 (1).pdf` | `Mallajosyula et al - 2021 - CD8 T Cell Viral Epitope Responses.pdf` |
+| `Newell 等 - 2013 - Combinatorial tetramer staining and mass cytometry analysis facilitate T-cell epitope mapping and ch.pdf` | `Newell et al - 2013 - Combinatorial Tetramer Staining and Mass Cytometry.pdf` |
+| `DN3 polymer.pdf` | `Simoni et al - 2019 - DN3 Polymer.pdf` *(title is the filename itself if no better title found)* |
+| `Zhang et al. - 2024 - Deep Lead Optimization Leveraging Generative AI for Structural Modification.pdf` | `Zhang et al - 2024 - Deep Lead Optimization Leveraging Generative AI.pdf` *(clean up period after "al", truncate title)* |
+
+---
+
 ## STEP 3: Write source summary pages
 
 For each source, create `wiki/sources/<slug>.md`:
@@ -88,7 +139,7 @@ For each source, create `wiki/sources/<slug>.md`:
 ```markdown
 ---
 title: "<Source Title>"
-source_file: "raw/<filename>"
+source_file: "raw/<filename>"     # use the renamed filename if the PDF was renamed in Step 2.5
 date_ingested: YYYY-MM-DD
 type: document | paper | image | data
 authors: ["Author Name"]
@@ -232,6 +283,7 @@ Record what happened. Every ingest gets an entry:
 ```markdown
 ## [YYYY-MM-DD] ingest | <Source Title>
 Source: raw/<filename>
+Renamed: raw/<old-filename> → raw/<new-filename>    # omit this line if the file was not renamed
 Created: sources/<slug>, entities/x, entities/y, concepts/a, concepts/b
 Updated: entities/z (added new findings from this source)
 Pages touched: N
